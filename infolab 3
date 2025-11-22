@@ -1,0 +1,113 @@
+-- таблица авторов
+CREATE TABLE authors (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    birth_year INTEGER
+);
+
+-- таблица книг
+CREATE TABLE books (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    author_id INTEGER,
+    publication_year INTEGER,
+    genre VARCHAR(50),
+    FOREIGN KEY (author_id) REFERENCES authors(id)
+);
+
+-- таблица пользователей
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    registration_date DATE
+);
+
+-- таблица выданных книг
+CREATE TABLE borrowed_books (
+    user_id INTEGER,
+    book_id INTEGER,
+    borrow_date DATE,
+    return_date DATE,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (book_id) REFERENCES books(id)
+);
+
+
+
+
+
+-- авторы
+INSERT INTO authors (name, birth_year) VALUES 
+('Лев Толстой', 1828),
+('Федор Достоевский', 1821),
+('Антон Чехов', 1860);
+
+-- книги
+INSERT INTO books (title, author_id, publication_year, genre) VALUES 
+('Война и мир', 1, 1869, 'Роман'),
+('Преступление и наказание', 2, 1866, 'Роман'),
+('Вишневый сад', 3, 1904, 'Пьеса');
+
+-- пользователи
+INSERT INTO users (name, registration_date) VALUES 
+('Иван Петров', '2023-01-15'),
+('Мария Сидорова', '2023-02-20'),
+('Алексей Козлов', '2023-03-10');
+
+-- выданные книги
+INSERT INTO borrowed_books (user_id, book_id, borrow_date, return_date) VALUES 
+(1, 1, '2024-01-10', '2024-01-25'),
+(2, 2, '2024-01-12', NULL),
+(3, 3, '2024-01-15', '2024-01-30');
+
+
+
+
+-- книги определенного автора
+SELECT b.title, b.publication_year, b.genre, a.name as author_name
+FROM books b 
+JOIN authors a ON b.author_id = a.id 
+WHERE a.name = 'Лев Толстой';
+
+-- книги по жанру
+SELECT title, publication_year, genre
+FROM books 
+WHERE genre = 'Роман';
+
+-- пользователи, зарегистрированные в определенный период
+SELECT name, registration_date
+FROM users 
+WHERE registration_date BETWEEN '2023-01-01' AND '2023-02-28';
+
+-- книги, которые еще не возвращены
+SELECT 
+    u.name as user_name,
+    b.title as book_title, 
+    a.name as author_name,
+    bb.borrow_date
+FROM borrowed_books bb
+JOIN users u ON bb.user_id = u.id
+JOIN books b ON bb.book_id = b.id
+JOIN authors a ON b.author_id = a.id
+WHERE bb.return_date IS NULL;
+
+
+
+
+-- статистика по пользователям (сколько книг взял каждый)
+SELECT 
+    u.name AS "Имя пользователя",
+    COUNT(bb.book_id) AS "Количество взятых книг"
+FROM users u 
+LEFT JOIN borrowed_books bb ON u.id = bb.user_id 
+GROUP BY u.id, u.name 
+ORDER BY COUNT(bb.book_id) DESC;
+
+-- обновление информации о пользователе
+UPDATE users 
+SET name = 'Иван Иванов', registration_date = '2023-01-20' 
+WHERE id = 1;
+
+-- удаление пользователя и его записей о книгах
+DELETE FROM borrowed_books WHERE user_id = 1;
+DELETE FROM users WHERE id = 1;
