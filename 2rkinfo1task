@@ -1,129 +1,158 @@
--- 1. Создание таблиц
+
+-- Создание таблиц
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,
-    full_name VARCHAR(100),
-    group_number VARCHAR(20)
+    full_name VARCHAR(100) NOT NULL,
+    group_number VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE subjects (
     subject_id SERIAL PRIMARY KEY,
-    subject_name VARCHAR(100)
+    subject_name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE grades (
     grade_id SERIAL PRIMARY KEY,
-    student_id INT REFERENCES students(student_id),
-    subject_id INT REFERENCES subjects(subject_id),
-    grade INT CHECK (grade >= 2 AND grade <= 5)
+    student_id INTEGER REFERENCES students(student_id) ON DELETE CASCADE,
+    subject_id INTEGER REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    grade INTEGER CHECK (grade >= 1 AND grade <= 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE attendance (
     attendance_id SERIAL PRIMARY KEY,
-    student_id INT REFERENCES students(student_id),
-    date_attended DATE,
-    status VARCHAR(20) CHECK (status IN ('Present', 'Absent', 'Excused'))
+    student_id INTEGER REFERENCES students(student_id) ON DELETE CASCADE,
+    date_attended DATE NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('присутствовал', 'отсутствовал', 'опоздал'))
 );
 
 CREATE TABLE notes (
     note_id SERIAL PRIMARY KEY,
-    student_id INT REFERENCES students(student_id),
-    note_text TEXT
+    student_id INTEGER REFERENCES students(student_id) ON DELETE CASCADE,
+    note_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Наполнение данных
--- Добавляем 6 студентов одной группы
+-- Наполнение данных
 INSERT INTO students (full_name, group_number) VALUES
-('Жилкевич Матвей', 'ИУ1-11Б'),
-('Никитин Кирилл', 'ИУ1-11Б'),
-('Ролевич Федор', 'ИУ1-11Б'),
-('Безмен Максим', 'ИУ1-11Б'),
-('Дмитриев Дмитрий', 'ИУ1-11Б'),
-('Сергеев Сергей', 'ИУ1-11Б');
+('Иванов Иван Иванович', 'ИТ-101'),
+('Петров Петр Петрович', 'ИТ-101'),
+('Сидорова Анна Сергеевна', 'ИТ-101'),
+('Кузнецова Мария Дмитриевна', 'ИТ-101'),
+('Смирнов Алексей Викторович', 'ИТ-101'),
+('Федоров Дмитрий Александрович', 'ИТ-101');
 
--- Добавляем 3 предмета
 INSERT INTO subjects (subject_name) VALUES
 ('Математический анализ'),
 ('Аналитическая геометрия'),
 ('Информатика');
 
--- Добавляем оценки (всем студентам по всем предметам)
 INSERT INTO grades (student_id, subject_id, grade) VALUES
-(1, 1, 5), (1, 2, 4), (1, 3, 5),
-(2, 1, 3), (2, 2, 3), (2, 3, 4),
-(3, 1, 4), (3, 2, 5), (3, 3, 4),
-(4, 1, 5), (4, 2, 5), (4, 3, 5),
-(5, 1, 3), (5, 2, 4), (5, 3, 3),
-(6, 1, 4), (6, 2, 4), (6, 3, 5);
+(1, 1, 5), (1, 2, 4), (1, 3, 5), (1, 1, 4), (1, 2, 5), (1, 3, 5),
+(2, 1, 3), (2, 2, 4), (2, 3, 3), (2, 1, 4), (2, 2, 3), (2, 3, 4),
+(3, 1, 5), (3, 2, 5), (3, 3, 5), (3, 1, 5), (3, 2, 5), (3, 3, 5),
+(4, 1, 4), (4, 2, 4), (4, 3, 4), (4, 1, 4), (4, 2, 4), (4, 3, 4),
+(5, 1, 3), (5, 2, 3), (5, 3, 4), (5, 1, 3), (5, 2, 4), (5, 3, 4),
+(6, 1, 2), (6, 2, 3), (6, 3, 2), (6, 1, 3), (6, 2, 3), (6, 3, 3);
 
--- Добавляем посещаемость (всем студентам на 2 дня)
 INSERT INTO attendance (student_id, date_attended, status) VALUES
-(1, '2023-09-01', 'Present'), (1, '2023-09-02', 'Present'),
-(2, '2023-09-01', 'Present'), (2, '2023-09-02', 'Absent'),
-(3, '2023-09-01', 'Excused'), (3, '2023-09-02', 'Present'),
-(4, '2023-09-01', 'Present'), (4, '2023-09-02', 'Present'),
-(5, '2023-09-01', 'Absent'), (5, '2023-09-02', 'Absent'),
-(6, '2023-09-01', 'Present'), (6, '2023-09-02', 'Present');
+(1, '2024-01-15', 'присутствовал'),
+(2, '2024-01-15', 'опоздал'),
+(3, '2024-01-15', 'присутствовал'),
+(4, '2024-01-15', 'присутствовал'),
+(5, '2024-01-15', 'отсутствовал'),
+(6, '2024-01-15', 'присутствовал'),
+(1, '2024-01-16', 'присутствовал'),
+(2, '2024-01-16', 'присутствовал'),
+(3, '2024-01-16', 'присутствовал'),
+(4, '2024-01-16', 'опоздал'),
+(5, '2024-01-16', 'присутствовал'),
+(6, '2024-01-16', 'отсутствовал');
 
--- Добавляем заметки
 INSERT INTO notes (student_id, note_text) VALUES
-(1, 'Любит информатику'),
-(2, 'Нужна помощь по информатике'),
-(3, 'Редко посещает занятия по информатике'),
-(4, 'Отличник по всем предметам'),
-(5, 'Хорошо работает в команде'),
-(6, 'Прогресс по информатике');
+(1, 'Отличник по всем предметам. Любит информатику.'),
+(2, 'Хорошо работает в команде. Прогресс по информатике.'),
+(3, 'Лучший студент группы. Отличник по всем предметам.'),
+(4, 'Стабильно хорошие оценки. Нужна помощь по информатике.'),
+(5, 'Средняя успеваемость. Редко посещает занятия по информатике.'),
+(6, 'Требуется дополнительная помощь. Плохо успевает по информатике.');
 
--- 3. Индексы
-CREATE INDEX idx_group_number ON students(group_number);
-CREATE INDEX idx_student_grade ON grades(student_id);
+-- Индексы
+CREATE INDEX idx_students_group ON students(group_number);
+CREATE INDEX idx_grades_student ON grades(student_id);
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX idx_notes_note_text_gin ON notes USING gin(note_text gin_trgm_ops);
 
-CREATE INDEX idx_notes_gin ON notes USING GIN (to_tsvector('russian', note_text));
-
--- 4. Представления
+-- Представления
 CREATE VIEW student_avg_grades AS
 SELECT 
     s.student_id,
     s.full_name,
-    AVG(g.grade) as average_grade
+    s.group_number,
+    ROUND(AVG(g.grade)::numeric, 2) as average_grade,
+    COUNT(g.grade_id) as total_grades
 FROM students s
-JOIN grades g ON s.student_id = g.student_id
-GROUP BY s.student_id, s.full_name;
+LEFT JOIN grades g ON s.student_id = g.student_id
+GROUP BY s.student_id, s.full_name, s.group_number
+ORDER BY average_grade DESC NULLS LAST;
 
--- 5. Транзакции
--- Добавляем нового студента и его оценки одной транзакцией
+-- Транзакция
 BEGIN;
-    INSERT INTO students (full_name, group_number) VALUES ('Новиков Николай', 'ИУ1-11Б');
-    -- Предположим, что новый ID будет 7, но лучше использовать подзапрос или currval в реальном приложении
-    INSERT INTO grades (student_id, subject_id, grade) VALUES 
-    ((SELECT student_id FROM students WHERE full_name = 'Новиков Николай'), 1, 4),
-    ((SELECT student_id FROM students WHERE full_name = 'Новиков Николай'), 2, 5),
-    ((SELECT student_id FROM students WHERE full_name = 'Новиков Николай'), 3, 5);
+INSERT INTO students (full_name, group_number) 
+VALUES ('Новиков Артем Игоревич', 'ИТ-101');
+INSERT INTO grades (student_id, subject_id, grade) VALUES
+(7, 1, 4), (7, 2, 5), (7, 3, 4);
+INSERT INTO attendance (student_id, date_attended, status) VALUES
+(7, '2024-01-15', 'присутствовал'),
+(7, '2024-01-16', 'присутствовал');
+INSERT INTO notes (student_id, note_text) 
+VALUES (7, 'Новый студент. Хорошо проявляет себя на занятиях по информатике.');
 COMMIT;
 
--- 6. Запросы
+-- Запросы
+WITH student_ranks AS (
+    SELECT 
+        student_id,
+        full_name,
+        group_number,
+        ROW_NUMBER() OVER (ORDER BY student_id) as rn
+    FROM students
+    WHERE group_number = 'ИТ-101'
+),
+target_rank AS (
+    SELECT rn FROM student_ranks WHERE student_id = 3
+)
+SELECT student_id, full_name, group_number
+FROM student_ranks
+WHERE rn BETWEEN (SELECT rn FROM target_rank) - 2 
+              AND (SELECT rn FROM target_rank) + 3
+AND student_id != 3
+ORDER BY rn;
 
--- 6.1. Найти 5 одногруппников студента (2 до и 3 после него по списку student_id)
--- Пусть целевой студент имеет ID = 3
-(SELECT * FROM students WHERE student_id < 3 ORDER BY student_id DESC LIMIT 2)
-UNION ALL
-(SELECT * FROM students WHERE student_id > 3 ORDER BY student_id ASC LIMIT 3);
+SELECT * FROM student_avg_grades WHERE student_id = 3;
 
--- 6.2. Посмотреть средний балл конкретного студента через представление
-SELECT * FROM student_avg_grades WHERE student_id = 1;
+SELECT 
+    s.subject_name,
+    ROUND(AVG(g.grade)::numeric, 2) as average_grade,
+    COUNT(g.grade_id) as total_grades
+FROM subjects s
+JOIN grades g ON s.subject_id = g.subject_id
+WHERE s.subject_name = 'Информатика'
+GROUP BY s.subject_id, s.subject_name;
 
--- 6.3. Агрегировать средний балл по предмету «Информатика»
-SELECT AVG(grade) as informatics_avg 
-FROM grades 
-WHERE subject_id = (SELECT subject_id FROM subjects WHERE subject_name = 'Информатика');
+SELECT 
+    n.note_id,
+    s.full_name,
+    n.note_text,
+    n.created_at
+FROM notes n
+JOIN students s ON n.student_id = s.student_id
+WHERE n.note_text ILIKE '%информатик%'
+ORDER BY n.created_at DESC;
 
--- 6.4. Выполнить полнотекстовый поиск по заметкам
-SELECT * FROM notes 
-WHERE to_tsvector('russian', note_text) @@ to_tsquery('russian', 'Информатика');
-
--- 6.5. Обновить посещаемость студента на конкретную дату через транзакцию
 BEGIN;
-    UPDATE attendance 
-    SET status = 'Excused' 
-    WHERE student_id = 2 AND date_attended = '2023-09-02';
-
+UPDATE attendance
+SET status = 'отсутствовал'
+WHERE student_id = 1 
+AND date_attended = '2024-01-15';
 COMMIT;
